@@ -1,29 +1,11 @@
 <?php
 include 'components/connect.php';
 
-if (isset($_COOKIE['user_id'])) {
-    $user_id = $_COOKIE['user_id'];
-} else {
-    $user_id = '';
-    header('location:login.php');
-    exit; 
-}
+// Tidak ada pemeriksaan login
 
-$count_likes = $conn->prepare("SELECT * FROM `likes` WHERE user_id = ?");
-$count_likes->execute([$user_id]);
-$total_likes = $count_likes->rowCount();
-
-$count_comments = $conn->prepare("SELECT * FROM `comments` WHERE user_id = ?");
-$count_comments->execute([$user_id]);
-$total_comments = $count_comments->rowCount();
-
-$count_bookmark = $conn->prepare("SELECT * FROM `bookmark` WHERE user_id = ?");
-$count_bookmark->execute([$user_id]);
-$total_bookmark = $count_bookmark->rowCount();
-
-$select_announcement = $conn->prepare("SELECT * FROM `announcements` ORDER BY id DESC LIMIT 1");
-$select_announcement->execute();
-$announcement = $select_announcement->fetch(PDO::FETCH_ASSOC);
+$count_announcement = $conn->prepare("SELECT * FROM `announcements` ORDER BY id DESC LIMIT 1");
+$count_announcement->execute();
+$announcement = $count_announcement->fetch(PDO::FETCH_ASSOC);
 
 if (!$announcement) {
     $announcement = [
@@ -32,11 +14,6 @@ if (!$announcement) {
         'description' => 'Belum ada pengumuman terbaru.'
     ];
 }
-
-$select_user = $conn->prepare("SELECT * FROM `users` WHERE id = ?");
-$select_user->execute([$user_id]);
-$user_data = $select_user->fetch(PDO::FETCH_ASSOC);
-$user_name = $user_data ? htmlspecialchars($user_data['name']) : 'Pengguna'; 
 ?>
 
 <!DOCTYPE html>
@@ -85,7 +62,7 @@ $user_name = $user_data ? htmlspecialchars($user_data['name']) : 'Pengguna';
     <?php include 'components/user_header.php'; ?>
 
     <section class="quick-select">
-        <h1 class="heading">Selamat datang - <?= $user_name; ?></h1>
+        <h1 class="heading">Kategori Playlist</h1>
         <div class="box-container">
             <div class="box">
                 <h1 class="title">Daftar Playlist</h1>

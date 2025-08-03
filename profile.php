@@ -54,7 +54,7 @@ $fetch_profile = $select_profile->fetch(PDO::FETCH_ASSOC);
             <div class="user">
                 <img src="uploaded_files/<?= $fetch_profile['image']; ?>" alt="">
                 <h3><?= $fetch_profile['name']; ?></h3>
-                <p>Kelas <?= htmlspecialchars($fetch_profile['class']); ?></p>
+
                 <a href="update.php" class="inline-btn">Ubah profil</a>
             </div>
 

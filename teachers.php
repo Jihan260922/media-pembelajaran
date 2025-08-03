@@ -1,16 +1,15 @@
 <?php
 include 'components/connect.php';
 
-if (isset($_COOKIE['user_id'])) {
-    $user_id = $_COOKIE['user_id'];
-    $select_user = $conn->prepare("SELECT * FROM `users` WHERE id = ?");
-    $select_user->execute([$user_id]);
-    $user_data = $select_user->fetch(PDO::FETCH_ASSOC);
-    $user_class = $user_data ? htmlspecialchars($user_data['class']) : '';
-} else {
-    $user_id = '';
-    $user_class = '';
-}
+session_start();
+
+// Hapus pemeriksaan login dan kelas
+$user_id = '';
+$user_class = '';
+
+// Ambil semua guru
+$select_tutors = $conn->prepare("SELECT * FROM `tutors`");
+$select_tutors->execute();
 
 ?>
 
@@ -34,7 +33,7 @@ if (isset($_COOKIE['user_id'])) {
 
     <section class="teachers">
 
-        <h1 class="heading">Daftar Guru Kelas <?= htmlspecialchars($user_class); ?></h1>
+        <h1 class="heading">Daftar Guru</h1>
 
         <form action="search_tutor.php" method="post" class="search-tutor">
             <input type="text" name="search_tutor" maxlength="100" placeholder="Cari guru..." required>
@@ -44,8 +43,6 @@ if (isset($_COOKIE['user_id'])) {
         <div class="box-container">
 
             <?php
-            $select_tutors = $conn->prepare("SELECT * FROM `tutors` WHERE class = ?");
-            $select_tutors->execute([$user_class]);
             if ($select_tutors->rowCount() > 0) {
                 while ($fetch_tutor = $select_tutors->fetch(PDO::FETCH_ASSOC)) {
 
@@ -87,7 +84,7 @@ if (isset($_COOKIE['user_id'])) {
             <?php
                 }
             } else {
-                echo '<p class="empty">Tidak ada guru yang terdaftar untuk kelas ini!</p>';
+                echo '<p class="empty">Tidak ada guru yang terdaftar!</p>';
             }
             ?>
 

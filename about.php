@@ -83,7 +83,7 @@ if(isset($_COOKIE['user_id'])){
             <div class="box">
                 <i class="fas fa-hand-pointer"></i>
                 <div>
-                    <h3>100%</h3>
+                    <h3>95%</h3>
                     <span>Interaktif</span>
                 </div>
             </div>
@@ -91,7 +91,7 @@ if(isset($_COOKIE['user_id'])){
             <div class="box">
                 <i class="fas fa-play"></i>
                 <div>
-                    <h3>100%</h3>
+                    <h3>98%</h3>
                     <span>Video Menarik</span>
                 </div>
             </div>
@@ -99,7 +99,7 @@ if(isset($_COOKIE['user_id'])){
             <div class="box">
                 <i class="fas fa-book"></i>
                 <div>
-                    <h3>100%</h3>
+                    <h3>96%</h3>
                     <span>Kurikulum</span>
                 </div>
             </div>
@@ -107,7 +107,7 @@ if(isset($_COOKIE['user_id'])){
             <div class="box">
                 <i class="fas fa-sync-alt"></i>
                 <div>
-                    <h3>100%</h3>
+                    <h3>91%</h3>
                     <span>Fleksibel</span>
                 </div>
             </div>

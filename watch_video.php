@@ -1,11 +1,7 @@
 <?php
 include 'components/connect.php';
 
-if (isset($_COOKIE['user_id'])) {
-    $user_id = $_COOKIE['user_id'];
-} else {
-    $user_id = '';
-}
+$user_id = ''; // Tidak perlu lagi menggunakan user_id
 
 if (isset($_GET['get_id'])) {
     $get_id = $_GET['get_id'];
@@ -14,64 +10,74 @@ if (isset($_GET['get_id'])) {
     header('location:about.php');
 }
 
-if (isset($_POST['like_content'])) {
-    if ($user_id != '') {
-        $content_id = $_POST['content_id'];
-        $content_id = filter_var($content_id, FILTER_SANITIZE_STRING);
+// Menangani rating konten
+if (isset($_POST['rate_content'])) {
+    // Hapus pemeriksaan login
+    $content_id = $_POST['content_id'];
+    $rating_value = $_POST['rating_value']; // Ambil nilai rating dari form
+    $content_id = filter_var($content_id, FILTER_SANITIZE_STRING);
+    $rating_value = filter_var($rating_value, FILTER_SANITIZE_STRING);
 
-        $select_content = $conn->prepare("SELECT * FROM `content` WHERE id = ? LIMIT 1");
-        $select_content->execute([$content_id]);
-        $fetch_content = $select_content->fetch(PDO::FETCH_ASSOC);
+    // Tentukan jumlah untuk setiap emoticon
+    $happy_count = 0;
+    $very_happy_count = 0;
+    $neutral_count = 0;
+    $sad_count = 0;
+    $angry_count = 0;
 
-        $tutor_id = $fetch_content['tutor_id'];
-
-        $select_likes = $conn->prepare("SELECT * FROM `likes` WHERE user_id = ? AND content_id = ?");
-        $select_likes->execute([$user_id, $content_id]);
-
-        if ($select_likes->rowCount() > 0) {
-            $remove_likes = $conn->prepare("DELETE FROM `likes` WHERE user_id = ? AND content_id = ?");
-            $remove_likes->execute([$user_id, $content_id]);
-            $message[] = 'hapus dari like!';
-        } else {
-            $insert_likes = $conn->prepare("INSERT INTO `likes`(user_id, tutor_id, content_id) VALUES(?,?,?)");
-            $insert_likes->execute([$user_id, $tutor_id, $content_id]);
-            $message[] = 'added to likes!';
-        }
-    } else {
-        $message[] = 'please login first!';
+    switch ($rating_value) {
+        case '😊':
+            $happy_count = 1; // Senang
+            break;
+        case '😍':
+            $very_happy_count = 1; // Sangat Senang
+            break;
+        case '😐':
+            $neutral_count = 1; // Netral
+            break;
+        case '😢':
+            $sad_count = 1; // Sedih
+            break;
+        case '😡':
+            $angry_count = 1; // Marah
+            break;
     }
+
+    $select_content = $conn->prepare("SELECT * FROM `content` WHERE id = ? LIMIT 1");
+    $select_content->execute([$content_id]);
+    $fetch_content = $select_content->fetch(PDO::FETCH_ASSOC);
+
+    $tutor_id = $fetch_content['tutor_id'];
+
+    // Insert rating baru
+    $insert_rating = $conn->prepare("INSERT INTO `ratings`(tutor_id, content_id, happy_count, very_happy_count, neutral_count, sad_count, angry_count) VALUES(?,?,?,?,?,?,?)");
+    $insert_rating->execute([$tutor_id, $content_id, $happy_count, $very_happy_count, $neutral_count, $sad_count, $angry_count]);
+
+    $message[] = 'Rating ditambahkan!';
 }
 
+// Menangani komentar
 if (isset($_POST['add_comment'])) {
-    if ($user_id != '') {
-        $id = create_unique_id();
-        $comment_box = $_POST['comment_box'];
-        $comment_box = filter_var($comment_box, FILTER_SANITIZE_STRING);
-        $content_id = $_POST['content_id'];
-        $content_id = filter_var($content_id, FILTER_SANITIZE_STRING);
+    $id = create_unique_id();
+    $comment_box = $_POST['comment_box'];
+    $comment_box = filter_var($comment_box, FILTER_SANITIZE_STRING);
+    $content_id = $_POST['content_id'];
+    $content_id = filter_var($content_id, FILTER_SANITIZE_STRING);
+    $name = $_POST['name']; // Ambil nama pengguna dari input
+    $name = filter_var($name, FILTER_SANITIZE_STRING);
 
-        $select_content = $conn->prepare("SELECT * FROM `content` WHERE id = ? LIMIT 1");
-        $select_content->execute([$content_id]);
-        $fetch_content = $select_content->fetch(PDO::FETCH_ASSOC);
+    $select_content = $conn->prepare("SELECT * FROM `content` WHERE id = ? LIMIT 1");
+    $select_content->execute([$content_id]);
+    $fetch_content = $select_content->fetch(PDO::FETCH_ASSOC);
 
-        $tutor_id = $fetch_content['tutor_id'];
+    $tutor_id = $fetch_content['tutor_id'];
 
-        if ($select_content->rowCount() > 0) {
-            $select_comment = $conn->prepare("SELECT * FROM `comments` WHERE content_id = ? AND user_id = ? AND tutor_id = ? AND comment = ?");
-            $select_comment->execute([$content_id, $user_id, $tutor_id, $comment_box]);
-
-            if ($select_comment->rowCount() > 0) {
-                $message[] = 'Komentar sudah ada!';
-            } else {
-                $insert_comment = $conn->prepare("INSERT INTO `comments`(id, content_id, user_id, tutor_id, comment) VALUES(?,?,?,?,?)");
-                $insert_comment->execute([$id, $content_id, $user_id, $tutor_id, $comment_box]);
-                $message[] = 'Komentar berhasil dibuat';
-            }
-        } else {
-            $message[] = 'something went wrong!';
-        }
+    if ($select_content->rowCount() > 0) {
+        $insert_comment = $conn->prepare("INSERT INTO `comments`(id, content_id, user_id, tutor_id, comment, name) VALUES(?,?,?,?,?,?)");
+        $insert_comment->execute([$id, $content_id, $user_id, $tutor_id, $comment_box, $name]);
+        $message[] = 'Komentar berhasil dibuat';
     } else {
-        $message[] = 'please login first!';
+        $message[] = 'something went wrong!';
     }
 }
 
@@ -122,6 +128,17 @@ if (isset($_POST['update_now'])) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 
+    <style>
+    .emoji-label {
+        display: inline-block;
+        margin: 5px;
+    }
+
+    .emoji {
+        font-size: 32px;
+        cursor: pointer;
+    }
+    </style>
 </head>
 
 <body>
@@ -165,12 +182,16 @@ if (isset($_POST['update_now'])) {
             while ($fetch_content = $select_content->fetch(PDO::FETCH_ASSOC)) {
                 $content_id = $fetch_content['id'];
 
-                $select_likes = $conn->prepare("SELECT * FROM `likes` WHERE content_id = ?");
-                $select_likes->execute([$content_id]);
-                $total_likes = $select_likes->rowCount();
-
-                $verify_likes = $conn->prepare("SELECT * FROM `likes` WHERE user_id = ? AND content_id = ?");
-                $verify_likes->execute([$user_id, $content_id]);
+                // Ambil jumlah rating untuk masing-masing emoticon
+                $select_ratings = $conn->prepare("SELECT 
+                    SUM(happy_count) as happy_count, 
+                    SUM(very_happy_count) as very_happy_count, 
+                    SUM(neutral_count) as neutral_count, 
+                    SUM(sad_count) as sad_count, 
+                    SUM(angry_count) as angry_count 
+                    FROM `ratings` WHERE content_id = ?");
+                $select_ratings->execute([$content_id]);
+                $rating_counts = $select_ratings->fetch(PDO::FETCH_ASSOC);
 
                 $select_tutor = $conn->prepare("SELECT * FROM `tutors` WHERE id = ? LIMIT 1");
                 $select_tutor->execute([$fetch_content['tutor_id']]);
@@ -182,7 +203,14 @@ if (isset($_POST['update_now'])) {
             <h3 class="title"><?= $fetch_content['title']; ?></h3>
             <div class="info">
                 <p><i class="fas fa-calendar"></i><span><?= $fetch_content['date']; ?></span></p>
-                <p><i class="fas fa-heart"></i><span><?= $total_likes; ?> like</span></p>
+
+                <p>
+                    <span>😊: <?= $rating_counts['happy_count']; ?></span>
+                    <span>😍: <?= $rating_counts['very_happy_count']; ?></span>
+                    <span>😐: <?= $rating_counts['neutral_count']; ?></span>
+                    <span>😢: <?= $rating_counts['sad_count']; ?></span>
+                    <span>😡: <?= $rating_counts['angry_count']; ?></span>
+                </p>
             </div>
             <div class="tutor">
                 <img src="uploaded_files/<?= $fetch_tutor['image']; ?>" alt="">
@@ -191,22 +219,33 @@ if (isset($_POST['update_now'])) {
                     <span><?= $fetch_tutor['profession']; ?></span>
                 </div>
             </div>
-            <form action="" method="post" class="flex">
+            <form action="" method="post" class="rating-form">
                 <input type="hidden" name="content_id" value="<?= $content_id; ?>">
-                <a href="playlist.php?get_id=<?= $fetch_content['playlist_id']; ?>" class="inline-btn">Lihat
-                    playlist</a>
-                <?php
-                if ($verify_likes->rowCount() > 0) {
-        ?>
-                <button type="submit" name="like_content"><i class="fas fa-heart"></i><span>liked</span></button>
-                <?php
-                } else {
-        ?>
-                <button type="submit" name="like_content"><i class="far fa-heart"></i><span>like</span></button>
-                <?php
-                }
-                ?>
+                <div class="emoji-options">
+                    <label class="emoji-label">
+                        <input type="radio" name="rating_value" value="😊">
+                        <span class="emoji">😊</span>
+                    </label>
+                    <label class="emoji-label">
+                        <input type="radio" name="rating_value" value="😍">
+                        <span class="emoji">😍</span>
+                    </label>
+                    <label class="emoji-label">
+                        <input type="radio" name="rating_value" value="😐">
+                        <span class="emoji">😐</span>
+                    </label>
+                    <label class="emoji-label">
+                        <input type="radio" name="rating_value" value="😢">
+                        <span class="emoji">😢</span>
+                    </label>
+                    <label class="emoji-label">
+                        <input type="radio" name="rating_value" value="😡">
+                        <span class="emoji">😡</span>
+                    </label>
+                </div>
+                <input type="submit" name="rate_content" value="Kirim" class="submit-btn">
             </form>
+
             <div class="description">
                 <p><?= $fetch_content['description']; ?></p>
             </div>
@@ -220,14 +259,15 @@ if (isset($_POST['update_now'])) {
 
     </section>
 
-
     <section class="comments">
 
         <h1 class="heading">Tambahkan komentar</h1>
 
         <form action="" method="post" class="add-comment">
             <input type="hidden" name="content_id" value="<?= $get_id; ?>">
-            <textarea name="comment_box" required placeholder="Masukan komentar..." maxlength="1000" cols="30"
+            <input type="text" name="name" required placeholder="Masukkan nama" maxlength="100" cols="100"
+                rows="50"><br><br>
+            <textarea name="comment_box" required placeholder="Tuliskan komentar..." maxlength="1000" cols="30"
                 rows="10"></textarea>
             <input type="submit" value="Tambah komentar" name="add_comment" class="inline-btn">
         </form>
@@ -240,22 +280,20 @@ if (isset($_POST['update_now'])) {
             $select_comments->execute([$get_id]);
             if ($select_comments->rowCount() > 0) {
                 while ($fetch_comment = $select_comments->fetch(PDO::FETCH_ASSOC)) {
-                    $select_commentor = $conn->prepare("SELECT * FROM `users` WHERE id = ?");
-                    $select_commentor->execute([$fetch_comment['user_id']]);
-                    $fetch_commentor = $select_commentor->fetch(PDO::FETCH_ASSOC);
+                    // Tampilkan nama yang diinputkan
+                    $name = htmlspecialchars($fetch_comment['name']);
             ?>
-            <div class="box" style="<?php if ($fetch_comment['user_id'] == $user_id) { echo 'order:-1;'; } ?>">
+            <div class="box">
                 <div class="user">
-                    <img src="uploaded_files/<?= $fetch_commentor['image']; ?>" alt="">
                     <div>
-                        <h3><?= $fetch_commentor['name']; ?></h3>
+                        <h3><?= $name; ?></h3>
                         <span><?= $fetch_comment['date']; ?></span>
                     </div>
                 </div>
-                <p class="text"><?= $fetch_comment['comment']; ?></p>
+                <p class="text"><?= htmlspecialchars($fetch_comment['comment']); ?></p>
                 <?php
-                if ($fetch_comment['user_id'] == $user_id) {
-                ?>
+                        if ($fetch_comment['user_id'] == $user_id) {
+                        ?>
                 <form action="" method="post" class="flex-btn">
                     <input type="hidden" name="comment_id" value="<?= $fetch_comment['id']; ?>">
                     <button type="submit" name="edit_comment" class="inline-option-btn">Edit komentar</button>
@@ -263,8 +301,8 @@ if (isset($_POST['update_now'])) {
                         onclick="return confirm('delete this comment?');">Hapus komentar</button>
                 </form>
                 <?php
-                }
-                ?>
+                        }
+                        ?>
             </div>
             <?php
                 }

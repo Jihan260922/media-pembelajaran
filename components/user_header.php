@@ -17,10 +17,7 @@ if(isset($message)){
 
     <section class="flex">
 
-        <a href="home.php" class="logo">
-            <img src="images/logo.png" alt="E-Learning Logo" width="60" height="auto">
-        </a>
-
+        <h1 class="heading1">Selamat Datang di Media Pembelajaran Interaktif</h1>
 
         <div class="icons">
             <div id="menu-btn" class="fas fa-bars"></div>
@@ -29,33 +26,7 @@ if(isset($message)){
             <div id="toggle-btn" class="fas fa-sun"></div>
         </div>
 
-        <div class="profile">
-            <?php
-            $select_profile = $conn->prepare("SELECT * FROM `users` WHERE id = ?");
-            $select_profile->execute([$user_id]);
-            if($select_profile->rowCount() > 0){
-                $fetch_profile = $select_profile->fetch(PDO::FETCH_ASSOC);
-            ?>
-            <img src="uploaded_files/<?= $fetch_profile['image']; ?>" alt="">
-            <h3><?= $fetch_profile['name']; ?></h3>
-            <span>Kelas <?= htmlspecialchars($fetch_profile['class']); ?></span>
-            <!-- Menampilkan kelas yang dipilih dengan kata "Kelas:" -->
-            <a href="profile.php" class="btn">Lihat profil</a>
 
-            <a href="components/user_logout.php" onclick="return confirm('logout from this website?');"
-                class="delete-btn">Logout</a>
-            <?php
-            } else {
-            ?>
-            <h3>Pilih Login atau Registrasi</h3>
-            <div class="flex-btn">
-                <a href="login.php" class="option-btn">Login</a>
-                <a href="register.php" class="option-btn">Registrasi</a>
-            </div>
-            <?php
-            }
-            ?>
-        </div>
 
     </section>
 
@@ -72,28 +43,12 @@ if(isset($message)){
     </div>
 
     <div class="profile">
-        <?php
-            $select_profile = $conn->prepare("SELECT * FROM `users` WHERE id = ?");
-            $select_profile->execute([$user_id]);
-            if($select_profile->rowCount() > 0){
-                $fetch_profile = $select_profile->fetch(PDO::FETCH_ASSOC);
-        ?>
-        <img src="uploaded_files/<?= $fetch_profile['image']; ?>" alt="">
-        <h3><?= $fetch_profile['name']; ?></h3>
-        <span>Kelas <?= htmlspecialchars($fetch_profile['class']); ?></span>
-        <!-- Menampilkan kelas yang dipilih dengan kata "Kelas:" -->
-        <a href="profile.php" class="btn">Lihat profil</a>
-        <?php
-            } else {
-        ?>
-        <h3>Pilih Login atau Registrasi</h3>
-        <div class="flex-btn" style="padding-top: .5rem;">
-            <a href="login.php" class="option-btn">Login</a>
-            <a href="register.php" class="option-btn">Registrasi</a>
-        </div>
-        <?php
-            }
-        ?>
+        <a href="home.php" class="logo">
+            <img src="images/logo.png" alt="E-Learning Logo" width="40" height="auto">
+        </a>
+        <h3>RA Nurul Huda</h3>
+
+
     </div>
 
     <nav class="navbar">
